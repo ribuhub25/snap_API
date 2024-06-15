@@ -26,6 +26,7 @@ Route::put('/characters/{character}', [CharacterController::class, 'update']);
 Route::patch('/characters/{character}', [CharacterController::class, 'updatePartial']);
 Route::delete('/characters/{character}', [CharacterController::class, 'destroy']);
 Route::post('/characters/bulk', [CharacterController::class, 'bulkStore']);
+Route::get('/showTags', [CharacterController::class, 'showTags']);
 
 //Rutas de tags
 Route::get('/tags', [TagController::class, 'index']);

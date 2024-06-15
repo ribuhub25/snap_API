@@ -309,4 +309,10 @@ class CharacterController extends Controller
 
         return 'Detattached';
     }
+    
+    public function showTags()
+    {
+        $character = Character::all()->load('tags');
+        return response()->json($character,200);
+    }
 }
