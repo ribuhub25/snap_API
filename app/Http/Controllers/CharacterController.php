@@ -15,6 +15,18 @@ use Illuminate\Support\Facades\Validator;
 
 class CharacterController extends Controller
 {
+    public function filter(Request $request)
+    {
+        $search = $request->search;
+        if (empty($search)) {
+            $characters = Character::paginate();
+        } else {
+            $characters = Character::where('name', 'LIKE', "%{$search}%")->paginate();
+        }
+
+        return response()->json($characters, 200);
+    }
+
     public function index(Request $request)
     {
         $characters = Character::paginate();
@@ -22,10 +34,7 @@ class CharacterController extends Controller
         if($includeVariants){
             $characters = $characters->with('variants');
         }
-        $includeTags = $request->query('includeTags');
-        if ($includeTags) {
-            $characters = $characters->with('tags');
-        }
+
         if($characters->isEmpty()){
             $data = [
                 'message' => 'No hay personajes registrados',
@@ -88,12 +97,18 @@ class CharacterController extends Controller
     public function show(Character $character)
     {
         $includeVariants = request()->query('includeVariants');
-        $includeTags = request()->query('includeTags');
-        if ($includeVariants or $includeTags) {
-            return new CharacterResource($character->loadMissing(['variants','tags']));
+
+        if ($includeVariants) {
+            if($includeVariants == 'true'){
+                return new CharacterResource($character->loadMissing(['tags','variants']));
+            }else{
+                return new CharacterResource($character->loadMissing('tags'));
+            }
         }
-        //return new CharacterResource($character); método pro
-        return $character->load('variants')->load('tags'); //metodo faster
+        else{
+            return new CharacterResource($character->loadMissing('tags'));
+        }
+
     }
     public function update(Request $request, Character $character)
     {
@@ -309,7 +324,7 @@ class CharacterController extends Controller
 
         return 'Detattached';
     }
-    
+
     public function showTags()
     {
         $character = Character::all()->load('tags');
