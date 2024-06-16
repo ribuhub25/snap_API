@@ -17,7 +17,10 @@ class CharacterController extends Controller
 {
     public function index(Request $request)
     {
-        $characters = Character::paginate();
+
+        $characters = Character::filter($request)->orderby('cost')->get();
+
+
         $includeVariants = $request->query('includeVariants');
         if($includeVariants){
             $characters = $characters->with('variants');
