@@ -17,75 +17,82 @@ class CharacterController extends Controller
 {
     public function index(Request $request)
     {
+        $characters = Character::query()
+            ->with('tags')
+            ->when(request('name') ?? false, function ($query, $name) {
+                $query->where('name', 'LIKE', '%' . $name . '%');
+            })
+            ->when(request('cost') ?? false, function ($query, $name) {
+                $query->where('cost', value(5));
+            })
+            ->paginate();
 
-        $characters = Character::filter($request)->orderby('cost')->get();
+        // $includeVariants = $request->query('includeVariants');
+        // if($includeVariants){
+        //     $characters = $characters->with('variants');
+        // }
+        // $includeTags = $request->query('includeTags');
+        // if ($includeTags) {
+        //     $characters = $characters->with('tags');
+        // }
 
-
-        $includeVariants = $request->query('includeVariants');
-        if($includeVariants){
-            $characters = $characters->with('variants');
-        }
-        $includeTags = $request->query('includeTags');
-        if ($includeTags) {
-            $characters = $characters->with('tags');
-        }
-        if($characters->isEmpty()){
+        if ($characters->isEmpty()) {
             $data = [
                 'message' => 'No hay personajes registrados',
                 'status' => 200,
             ];
-            return response()->json($data,200);
+            return response()->json($data, 200);
         }
-        return response()->json($characters,200);
+        return response()->json($characters, 200);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required','string', 'max:255', 'unique:characters'],
+            'name' => ['required', 'string', 'max:255', 'unique:characters'],
             'type' => ['required', 'string', 'max:255'],
             'cost' => ['required', 'numeric'],
             'power' => ['required', 'numeric'],
-            'ability' => ['string','max:255','nullable'],
-            'flavor' => ['string','max:255'],
-            'art' => ['required','string', 'max:255'],
-            'alternative_art' => ['string', 'max:255','nullable'],
-            'url' => ['required','string', 'max:255'],
-            'status' => ['required','string', 'max:255'],
-            'carddefid' => ['required','string', 'max:255'],
-            'source' => ['required','string', 'max:255'],
-            'source_slug' => ['required','string', 'max:255'],
-            'rarity' => ['string','max:255','nullable'],
-            'rarity_slug' => ['string','max:255','nullable'],
-            'difficulty' => ['string','max:255','nullable'],
-            'sketcher' => ['required','string','max:255'],
-            'inker' => ['string','max:255','nullable'],
-            'colorist' => ['required','string', 'max:255'],
+            'ability' => ['string', 'max:255', 'nullable'],
+            'flavor' => ['string', 'max:255'],
+            'art' => ['required', 'string', 'max:255'],
+            'alternative_art' => ['string', 'max:255', 'nullable'],
+            'url' => ['required', 'string', 'max:255'],
+            'status' => ['required', 'string', 'max:255'],
+            'carddefid' => ['required', 'string', 'max:255'],
+            'source' => ['required', 'string', 'max:255'],
+            'source_slug' => ['required', 'string', 'max:255'],
+            'rarity' => ['string', 'max:255', 'nullable'],
+            'rarity_slug' => ['string', 'max:255', 'nullable'],
+            'difficulty' => ['string', 'max:255', 'nullable'],
+            'sketcher' => ['required', 'string', 'max:255'],
+            'inker' => ['string', 'max:255', 'nullable'],
+            'colorist' => ['required', 'string', 'max:255'],
         ]);
         $character = Character::create([
-            'name'=> $request->name,
-            'type'=> $request->type,
-            'cost'=> $request->cost,
-            'power'=> $request->power,
-            'ability'=> $request->ability,
-            'flavor'=> $request->flavor,
-            'art'=> $request->art,
-            'alternative_art'=> $request->alternative_art,
-            'url'=> $request->url,
-            'status'=> $request->status,
-            'carddefid'=> $request->carddefid,
-            'source'=> $request->source,
-            'source_slug'=> $request->source_slug,
-            'rarity'=> $request->rarity,
-            'rarity_slug'=> $request->rarity_slug,
-            'difficulty'=> $request->difficulty,
-            'sketcher'=> $request->sketcher,
-            'inker'=> $request->inker,
-            'colorist'=> $request->colorist,
+            'name' => $request->name,
+            'type' => $request->type,
+            'cost' => $request->cost,
+            'power' => $request->power,
+            'ability' => $request->ability,
+            'flavor' => $request->flavor,
+            'art' => $request->art,
+            'alternative_art' => $request->alternative_art,
+            'url' => $request->url,
+            'status' => $request->status,
+            'carddefid' => $request->carddefid,
+            'source' => $request->source,
+            'source_slug' => $request->source_slug,
+            'rarity' => $request->rarity,
+            'rarity_slug' => $request->rarity_slug,
+            'difficulty' => $request->difficulty,
+            'sketcher' => $request->sketcher,
+            'inker' => $request->inker,
+            'colorist' => $request->colorist,
         ]);
         return response()->json([
             "data" => $character
-        ],200);
+        ], 200);
     }
 
     public function show(Character $character)
@@ -93,7 +100,7 @@ class CharacterController extends Controller
         $includeVariants = request()->query('includeVariants');
         $includeTags = request()->query('includeTags');
         if ($includeVariants or $includeTags) {
-            return new CharacterResource($character->loadMissing(['variants','tags']));
+            return new CharacterResource($character->loadMissing(['variants', 'tags']));
         }
         //return new CharacterResource($character); método pro
         return $character->load('variants')->load('tags'); //metodo faster
@@ -101,12 +108,12 @@ class CharacterController extends Controller
     public function update(Request $request, Character $character)
     {
         $character =  Character::find($character->id);
-        if(!$character){
+        if (!$character) {
             $data = [
                 'message' => 'Personaje no encontrado',
                 'status' => 404
             ];
-            return response()->json($data,404);
+            return response()->json($data, 404);
         }
 
         $validator = Validator::make($request->all(), [
@@ -131,13 +138,13 @@ class CharacterController extends Controller
             'colorist' => ['required', 'string', 'max:255'],
         ]);
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             $data = [
                 'message' => 'Error en la validación de datos',
                 'errors' => $validator->errors(),
                 'status' => 400
             ];
-            return response()->json($data,400);
+            return response()->json($data, 400);
         }
 
         $character->name = $request->name;
@@ -167,7 +174,7 @@ class CharacterController extends Controller
             'data' => $character,
             'status' => 200
         ];
-        return response()->json($data,200);
+        return response()->json($data, 200);
     }
     public function updatePartial(Request $request, Character $character)
     {
@@ -211,7 +218,7 @@ class CharacterController extends Controller
             return response()->json($data, 400);
         }
 
-        if($request->has('name')) {
+        if ($request->has('name')) {
             $character->name = $request->name;
         }
         if ($request->has('type')) {
@@ -226,7 +233,7 @@ class CharacterController extends Controller
         if ($request->has('ability')) {
             $character->ability = $request->ability;
         }
-        if($request->has('flavor')) {
+        if ($request->has('flavor')) {
             $character->flavor = $request->flavor;
         }
         if ($request->has('art')) {
@@ -247,22 +254,22 @@ class CharacterController extends Controller
         if ($request->has('source')) {
             $character->source = $request->source;
         }
-        if($request->has('source_slug')) {
+        if ($request->has('source_slug')) {
             $character->source_slug = $request->source_slug;
         }
-        if($request->has('rarity')) {
+        if ($request->has('rarity')) {
             $character->rarity = $request->rarity;
         }
-        if($request->has('rarity_slug')) {
+        if ($request->has('rarity_slug')) {
             $character->rarity_slug = $request->rarity_slug;
         }
         if ($request->has('difficulty')) {
             $character->difficulty = $request->difficulty;
         }
-        if($request->has('sketcher')) {
+        if ($request->has('sketcher')) {
             $character->sketcher = $request->sketcher;
         }
-        if($request->has('inker')) {
+        if ($request->has('inker')) {
             $character->inker = $request->inker;
         }
         if ($request->has('colorist')) {
@@ -277,8 +284,6 @@ class CharacterController extends Controller
             'status' => 200
         ];
         return response()->json($data, 200);
-
-
     }
     public function destroy(Character $character)
     {
@@ -287,13 +292,13 @@ class CharacterController extends Controller
             'message' => 'Personaje Eliminado',
             'status' => 200
         ];
-        return response()->json($data,200);
+        return response()->json($data, 200);
     }
 
     public function bulkStore(BulkStoreCharacterRequest $request)
     {
-        $bulk = collect($request->all())->map(function($arr,$key) {
-            return Arr::except($arr,[]);
+        $bulk = collect($request->all())->map(function ($arr, $key) {
+            return Arr::except($arr, []);
         });
 
         Character::insert($bulk->toArray());
