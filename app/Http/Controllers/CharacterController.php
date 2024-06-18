@@ -15,32 +15,15 @@ use Illuminate\Support\Facades\Validator;
 
 class CharacterController extends Controller
 {
-    public function filter(Request $request)
+    public function index()
     {
-        $search = $request->search;
-        if (empty($search)) {
-            $characters = Character::paginate();
-        } else {
-            $characters = Character::where('name', 'LIKE', "%{$search}%")->paginate();
-        }
-
-        return response()->json($characters, 200);
-    }
-
-    public function index(Request $request)
-    {
-        $characters = Character::paginate();
-        $includeVariants = $request->query('includeVariants');
-        if($includeVariants){
-            $characters = $characters->with('variants');
-        }
+        $characters = Character::query()
+            ->with('tags')
+            ->search(request(['name','cost','power','serie', 'power_order', 'status']))
+            ->paginate();
 
         if($characters->isEmpty()){
-            $data = [
-                'message' => 'No hay personajes registrados',
-                'status' => 200,
-            ];
-            return response()->json($data,200);
+            return response()->json(Character::query()->with('tags')->paginate(),200,['message'=>'No se encontro personajes al aplicar el filtro']);
         }
         return response()->json($characters,200);
     }

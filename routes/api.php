@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\Route;
 */
 //Rutas de Character
 Route::get('/characters',[CharacterController::class, 'index']);
-Route::get('/characters/search/{search}', [CharacterController::class, 'filter']);
 Route::post('/characters', [CharacterController::class, 'store']);
 Route::get('/characters/{character}', [CharacterController::class, 'show']);
 Route::post('/characters/addTags/{character}', [CharacterController::class, 'addTags']);
